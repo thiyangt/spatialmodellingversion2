@@ -1,0 +1,1000 @@
+---
+pagetitle: "Spatial Data Science"
+author: "Dr Thiyanga S. Talagala"
+date: "December 2025"
+host: "MSc in Data Science and Intelligence"
+institute: "University of Sri Jayewardenepura"
+strip-comments: true
+format: 
+  revealjs:
+    slide-number: true
+    multiplex: true
+    theme: assets/monash.scss
+    show-slide-number: all
+    controls: true
+    width: 1280
+    height: 720
+    incremental: true
+    auto-stretch: false
+    css: [assets/custom.css, assets/pacman.css, assets/tachyons-addon.css]
+    include-after: |
+      <link rel="stylesheet" href="assets/syntax-highlight.css">
+      <link rel="stylesheet" href="assets/fontawesome-free-6.1.1-web/css/all.min.css">
+      <script src="assets/fontawesome-free-6.1.1-web/js/all.min.js"></script>
+callout-icon: false
+output-file: index.html
+execute:
+  echo: true
+---
+
+## {#title-slide background="images/book-bg.jpg"}
+
+```{r setup, include = FALSE}
+library(tidyverse)
+
+rotating_text <- function(x, align = "center") {
+  glue::glue('
+<div style="overflow: hidden; height: 1.2em;">
+<ul class="content__container__list {align}" style="text-align: {align}">
+<li class="content__item">{x[1]}</li>
+<li class="content__item">{x[2]}</li>
+<li class="content__item">{x[3]}</li>
+<li class="content__item">{x[4]}</li>
+</ul>
+</div>')
+}
+
+fa_list <- function(x, incremental = FALSE) {
+  icons <- names(x)
+  fragment <- ifelse(incremental, "fragment", "")
+  items <- glue::glue('<li class="{fragment}"><span class="fa-li"><i class="{icons}"></i></span> {x}</li>')
+  paste('<ul class="fa-ul">', 
+        paste(items, collapse = "\n"),
+        "</ul>", sep = "\n")
+}
+
+```
+
+::: title-box
+
+<h2>`r rmarkdown::metadata$pagetitle`</h2>
+
+👩🏻‍💻 [`r rmarkdown::metadata$author` @ `r rmarkdown::metadata$institute`]{.author}  
+
+
+`r rotating_text(c('<i class="fa-solid fa-envelope"></i> ttalagala@sjp.ac.lk', '<i class="fa-brands fa-twitter"></i> @thiyangt', '<i class="fa-brands fa-github"></i> github.com/thiyangt', '<i class="fa-solid fa-globe"></i> https://thiyanga.netlify.app/'))`
+
+
+:::
+
+
+
+## Outline  {background-color=""}
+
+- Introduction
+
+- Three types of spatial processes
+
+- Isotropy
+
+- Spatial kriging
+
+## Introduction
+
+A spatial stochastic process is a family of random variables $$\{Z(s): s \in D\ \subset \mathbb{R}^d \}.$$
+
+Here, 
+
+$D$ is the spatial domain in which observations could be made and 
+
+$Z(s)$ is a random variable representing the quantity  that you measured at location $s$.
+
+## Daily temperature in Canada
+
+Locations of Canadian weather stations: $s_i$
+
+```{r}
+library(sf)
+library(geoFourierFDA)
+library(rnaturalearth)
+canada$m_coord
+```
+
+
+Example: $s_1 = (50.25, -104.39)$
+
+## Daily temperature in Canada
+
+Observed daily temperature value: $z(s_i)$
+
+```{r}
+canada$m_data[1, ]
+```
+
+Example: 
+
+$$s_1 = (50.25, -104.39)$$
+$$z(s_1) = -15.7$$
+
+## Visualization
+
+```{r}
+df <- data.frame(canada$m_coord)
+df
+```
+
+## Visualization (cont.)
+
+```{r}
+df$location <- attr(canada$m_coord, "dimnames")[[1]]
+df
+```
+
+## Visualisation (cont.)
+
+```{r}
+df <- st_as_sf(df, coords=c("W.longitude", "N.latitude"))
+df
+```
+
+## Visualisation (cont.)
+
+```{r}
+st_crs(df) <- 4326
+df
+```
+
+## Add temperature data
+
+```{r}
+df$temp <- canada$m_data[1, ]
+df
+```
+
+## Getting map data
+
+```{r}
+map <- rnaturalearth::ne_states("Canada", returnclass = "sf")
+map
+```
+
+## Visualisation of the spatial domain $D$
+
+This represents $D$ - spatial domain (geographical region which the observations could be made)
+
+```{r}
+ggplot(map) + geom_sf()
+```
+
+::: {.f3 .monash-gray80 style="line-height:0.9!important;"}
+
+A spatial stochastic process is a family of random variables $$\{Z(s): s \in D\}.$$
+
+:::
+
+
+## Visualisation of the spatial domain ($D$), and $z(s_i)$ values
+
+
+```{r}
+library(viridis)
+ggplot(map) + geom_sf() + geom_sf(data=df, aes(color = temp), size=3) + scale_color_viridis()
+```
+
+
+
+## Three types of spatial processes
+
+1. Geostatistical processes: 
+
+   In theory the process could be observed at **infinitely many locations** in $S \in D$.
+   
+   Example: Air temperature in Sri Lanka
+
+2. Areal process
+    
+      Here $D$ is divided into on-overlapping sub regions such as $D = {B_1, B_2,...B_n}$ where $B_i$ is the $i^{th}$ sub region.
+  
+    
+    Example: Total number of dengue cases in each district in Sri Lanka
+ 
+3. Point process
+
+    The process can be observed only at specific locations in $S \in D$.
+  
+    Example: Tree volume of sandalwood trees in Sri Lanka
+
+
+
+## Tobler’s First Law of Geography
+
+Everything is related to everything else, but near things are more related than distant things.
+
+```{r}
+library(viridis)
+ggplot(map) + geom_sf() +
+  geom_sf(data=df, aes(color = temp), size=3) +
+  scale_color_viridis()
+```
+
+
+## Weakly Stationary
+
+
+## Strictly Stationary
+
+
+##
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+### Isotropy
+
+direction-independent
+
+```{r}
+#| echo: false
+#| fig-width: 15
+#| fig-height: 15
+set.seed(99999)
+large_number <- 1e5
+x <- rnorm(large_number)
+y <- rnorm(large_number)
+z <- cbind(x, y)
+z <- data.frame(z)
+
+ggplot(z) +
+  geom_density2d_filled(aes(x = x, y = y)) +
+   theme(legend.position = "none") +
+  coord_fixed()
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+### Anisotropic
+
+direction-independent
+
+```{r}
+#| echo: false
+#| fig-width: 15
+#| fig-height: 15
+A <- matrix(c(1, 0,
+              0.9, sqrt(1 - 0.8^2)), byrow = TRUE, nrow = 2, ncol = 2)
+x <- t(A %*% t(z)) 
+colnames(x) <- c('x', 'y') # forces the aspect ratio to be 1:1 so you see the ellipses!
+ggplot(data.frame(x)) +
+  geom_density2d_filled(aes(x, y)) +
+  theme(legend.position = "none") +
+  coord_fixed()
+
+```
+
+:::
+
+::::
+
+
+##
+
+1. What is isotropic?
+  
+   The correlation between any two observations depends only on the **distance between those locations** and not on their relative direction (directionally invariant).
+
+
+2. Why is isotropic important in spatial data analysis?
+
+   This assumption simplifies analysis and modeling processes.
+
+
+
+## Spatial Interpolation
+
+Spatial interpolation is the activity of estimating values of spatially continuous variables (fields) for spatial locations where they have not been observed, based on observations.
+
+### Spatial Interpolation Methods
+
+- Inverse Distance Weighting (IDW): It estimates values for unmeasured locations by considering the values and distances of nearby measured points.
+
+- Kriging: A geostatistical technique that provides optimal predictions and quantifies uncertainty by analyzing spatial autocorrelation.
+
+
+- Spline Interpolation: It fits a smooth curve through measured points to estimate values at unmeasured locations.
+
+- Nearest-neighbor interpolation: It assigns the value of the closest measured point to the unmeasured location.
+
+## Statial Interpolation Methods (cont.)
+
+- Natural Neighbor: Similar to nearest neighbor but considers multiple nearby points and their influence.
+
+- Radial Basis Function (RBF): It constructs a continuous function that satisfies given data values and radial symmetry properties.
+
+- Deep Learning Model for Spatial Interpolation 
+
+- Image-driven spatial interpolation
+
+- Bayesian deep learning approaches
+
+- Ensemble approaches
+
+## Inverse Distance Weighting (IDW)
+
+- Nonparametric interpolation method
+
+- Based on weighted averages of the observations. 
+
+- Weights are calculated based on the inverse of the distances between the known data points and the location where the estimation is being made
+
+- Relies on Tobler’s first law of geography
+
+## Inverse Distance Weighting (IDW)
+
+Suppose $s_0$ is the point that we need to interpolate. Then,
+
+$$\hat{Z}(s_0) = \frac{\sum_{i=1}^{n}w(s_i)Z(s_i)}{\sum_{i=1}^nw(s_i)}$$ and $w_i$ is defined as 
+
+$$w_i = \frac{1}{||s_i - s_o||^p}$$
+
+- We can tune the value of $p$ using a cross validation method
+
+- We can limit the amount of neighbours to take into consideration to speed up the computations.
+
+## Your turn
+
+:::: {.columns}
+
+::: {.column width="40%"}
+
+```{r, comment=NA, echo=FALSE}
+location <- 1:5
+x <- c(2, 3, 9, 6, 5)
+y <- c(2, 7, 9, 5, 3)
+z <- c(10, 11, 15, 9, 8)
+#d_5_5 <- sqrt((x - 5)^2 + (y-5)^2)
+df1 <- data.frame(x=x, y=y, z=z)
+knitr::kable(df1)
+```
+
+:::
+
+::: {.column width="60%"}
+
+```{r, comment=NA, echo=FALSE}
+ggplot(df1, aes(x=x, y=y, col=z)) + geom_point(size=3) + coord_fixed()
+```
+
+:::
+
+::::
+
+We want to find z value at x=5, y=5.
+
+## Answer
+
+```{r, comment=NA, echo=FALSE}
+location <- 1:5
+x <- c(2, 3, 9, 6, 5)
+y <- c(2, 7, 9, 5, 3)
+z <- c(10, 11, 15, 9, 8)
+d_5_5 <- sqrt((x - 5)^2 + (y-5)^2)
+df1 <- data.frame(x=x, y=y, z=z, dis_to_55=d_5_5)
+df1$inv_dis <- 1/d_5_5
+df1$weight <- df1$inv_dis/sum(df1$inv_dis)
+knitr::kable(df1)
+```
+
+Predicted value at (5, 5)
+
+$z(5, 5) = 10\times 0.104 + 11 \times 0.156 + 15 \times 0.078 + \\ 9 \times 0.441 + 8 \times 0.220$
+
+## IDW - Application
+
+
+<!--https://www.paulamoraga.com/book-spatial/spatial-interpolation-methods.html-->
+
+<!--https://www.geo.fu-berlin.de/en/v/soga-r/Advances-statistics/Geostatistics/Inverse-Distance-Weighting-IDW/IDW-Interpolation-of-Weather-Data/index.html-->
+
+<!--https://bookdown.org/igisc/EnvDataSci/spatial-interpolation.html-->
+
+Question: Interpolate Mean $NO_2$
+ concentrations in air  in Germany, in 2017
+
+Step 1: Load necessary packages
+
+```{r, warning=FALSE, message=FALSE}
+library(gstat)
+library(tidyverse)
+```
+
+Step 2: Read data
+
+```{r}
+no2 <- read_csv(system.file("external/no2.csv", 
+    package = "gstat"), show_col_types = FALSE)
+no2
+```
+
+
+
+##
+
+```{r}
+head(data.frame(no2), 3)
+```
+
+## Create a Coordinate Reference System (CRS) Object
+
+- st_crs: used to create a coordinate reference system (CRS) object.
+
+- `EPSG:32632` is a specific CRS identifier. In this case, it refers to a CRS known as "WGS 84 / UTM zone 32N". This CRS is commonly used for mapping and spatial analysis in Europe, particularly in the northern regions.
+
+- The following line of code creates a CRS object named crs representing the coordinate reference system "WGS 84 / UTM zone 32N".
+
+
+
+```{r}
+crs <- st_crs("EPSG:32632")
+crs
+```
+
+
+
+## convert no2 to spatial object
+
+```{r}
+no2.sf <- st_as_sf(no2, crs = "OGC:CRS84", coords = 
+    c("station_longitude_deg", "station_latitude_deg")) |>
+    st_transform(crs) 
+no2.sf
+```
+
+## EPSG: 32632 vs OGC: CRS84
+
+- EPSG:32632
+  
+  Commonly used for regional mapping and spatial analysis in Europe, particularly in the northern regions. 
+
+- OGC:CRS84
+  
+  Often used in web mapping applications and geospatial data exchange due to its simplicity and widespread support. 
+  
+
+-  EPSG:32632 is a regional projected CRS optimized for mapping specific areas with minimal distortion, while OGC:CRS84 is a global geographic CRS commonly used for general-purpose mapping and data exchange. 
+
+## Load country boundary
+
+```{r}
+
+map <- read_sf("de_nuts1.gpkg") |> st_transform(crs) 
+map
+```
+
+::: {.f3 .monash-gray80 style="line-height:0.9!important;"}
+
+Data source: https://github.com/edzer/sdsr/tree/main/data 
+ (select de_nuts1.gpkg)
+
+:::
+
+## Plot map
+
+```{r}
+ggplot() + geom_sf(data = map)
+```
+
+## Add observed values to the map
+
+```{r}
+ggplot() + geom_sf(data = map) + 
+geom_sf(data = no2.sf, mapping = aes(col = NO2)) + 
+  scale_color_viridis()
+```
+
+## IDW 
+Step 1: Create a regular grid ($10km \times 10km$)
+
+```{r, warning=FALSE}
+library(stars)
+grid <- st_bbox(map) |>
+  st_as_stars(dx = 10000) |> st_crop(map) 
+grid
+```
+
+- `st_bbox(map)`: Calculate the bounding box of the spatial object `map`.
+
+##
+
+```{r, warning=FALSE}
+#| eval: false
+library(stars)
+grid <- st_bbox(map) |>
+  st_as_stars(dx = 10000) |> st_crop(map) 
+grid
+```
+
+- `st_as_stars(dx = 10000)`: Convert the bounding box obtained from `st_bbox(map)` into a raster object using the stars package. The `dx` parameter sets the cell size (in the x-direction) for the resulting raster, with a value of 10000 specified here.
+
+
+- `st_crop(map):` This function crops the raster grid obtained from st_as_stars(dx = 10000) to match the extent of the map object. This ensures that the resulting grid covers only the area within the spatial extent of the map object.
+
+## IDW 
+
+Step 2: Interpolation
+
+```{r}
+library(gstat)
+interpolated.values <- idw(NO2~1, no2.sf, grid)
+interpolated.values 
+```
+
+## IDW
+
+Step 3: Plot values
+
+```{r}
+ggplot() + geom_stars(data = interpolated.values, 
+                      aes(fill = var1.pred, x = x, y = y)) + 
+    geom_sf(data = st_cast(map, "MULTILINESTRING")) + 
+    geom_sf(data = no2.sf, col="red") + scale_fill_viridis() 
+```
+
+## Comparison
+
+```{r}
+library(patchwork)
+p1 <- ggplot() + geom_sf(data = map) +  geom_sf(data = no2.sf, mapping = aes(col = NO2)) + scale_color_viridis()
+p2 <- ggplot() + geom_stars(data = interpolated.values, 
+                      aes(fill = var1.pred, x = x, y = y)) + geom_sf(data = st_cast(map, "MULTILINESTRING")) + geom_sf(data = no2.sf, col="red") + scale_fill_viridis() 
+p1|p2
+```
+
+
+
+## Variogram Modelling and Krigging
+
+Geostatistical processes are generally modelled using additive decomposition:
+
+$$Z(s) = \mu(s) + \epsilon(s)$$
+
+Where,
+
+$\mu(s)$ - large-scale variation/ spatial-trend/ spatially varying mean that captures the long range (nonstationary) spatial variation
+
+$\epsilon(s)$ - small-scale variation/ innovations/ spatial geostatistical error
+
+- To fully capture the characteristics of the geostatistical process, we need to model both $\mu(s)$ and $\epsilon(s)$.
+
+## Overall modeeling approach
+
+$$Z(s) = \mu(s) + \epsilon(s)$$
+
+First we model $\mu(s)$ using OLS or some other trend model  via covariates and the residuals are used to model small-scale variation. 
+
+
+## Modelling Large Scale Variation
+
+- Regression
+
+- Machine-learning models
+
+
+## Modelling Small Scale Variation
+
+Let's learn some theories we need to model small scale variations.
+
+## Investigate Spatial Autocorrelation Using Empirical Variogram/ Variogram cloud
+
+$$\gamma(s, t) = \frac{1}{2}Var\{Z(s_i) - Z(s_j)\}$$
+An estimator for this is
+
+$$\gamma(s, t) = \frac{1}{2}\{Z(s_i) - Z(s_j)\}^2$$
+
+Proof: In-class
+
+## Variogram Cloud/ Empirical Variogram
+
+```{r}
+vcloud <- variogram(NO2~1, no2.sf, cloud=TRUE)
+vcloud
+```
+
+## Illustration: `gamma` value calculation
+
+```{r}
+right <- no2[1,]$NO2
+right
+left <- no2[3,]$NO2
+left
+(right-left)^2/2
+```
+
+## Illustration: `dist` value calculation
+
+Your turn
+
+
+## Variogram Cloud: Method 1
+
+```{r}
+ggplot(data=vcloud, aes(x=dist, y=gamma)) + geom_point()
+```
+
+
+## Variogram Cloud: Method 2
+
+```{r}
+plot(vcloud)
+```
+
+## Binned Empirical Semi-Variogram/ Sample variogram/ Sample Experimental Variogram
+
+$$\hat{\gamma}(h) = \frac{1}{N_h}\sum_{i=1}^{N_h}(Z(s_i)-Z(s_i+h))^2$$
+where 
+
+$h$ is the spatial distance between observations
+
+$N_h$ is the number of pairs that are within $h$ distance.
+
+
+##  Binned Empirical Semi-Variogram/ Sample variogram/ Sample Experimental Variogram
+
+```{r}
+v1 <- variogram(NO2~1, no2.sf)
+v1
+```
+
+`cutoff`: one-third of the length of the bounding box diagonal
+
+`width`: cutoff divided by 15
+
+## Plot Sample Experimental Variogram
+
+```{r}
+plot(v1, plot.numbers = TRUE, xlab = "distance h [m]",
+     ylab = expression(gamma(h)),
+     xlim = c(0, 1.055 * max(v1$dist)))
+```
+
+## Change default values
+
+```{r}
+v2 <- variogram(NO2~1, no2.sf, cutoff = 100000, width = 10000)
+plot(v2, plot.numbers = TRUE, xlab = "distance h [m]",
+     ylab = expression(gamma(h)),
+     xlim = c(0, 1.055 * max(v2$dist)))
+```
+
+## Fitting variogram models
+
+```{r}
+vgm()
+```
+
+## Variogram models available in R’s gstat package
+
+```{r}
+show.vgms(par.strip.text=list(cex=0.75))
+```
+
+## Variogram
+
+Resources: https://surferhelp.goldensoftware.com/vario/variogram_model.htm
+
+https://csegrecorder.com/articles/view/the-variogram-basics-a-visual-intro-to-useful-geostatistical-concepts
+
+## Variogram modelling
+
+```{r}
+v.m <- fit.variogram(v1, vgm(psill=20, model = "Exp", range = 20000, nugget = 1))
+```
+
+We need to provide partial sill, range, and nugget
+
+
+## Visualize the fit
+
+```{r}
+plot(v1, v.m)
+```
+
+## Assess isotropy assumption
+
+```{r}
+v1.ani <- variogram(NO2~1, alpha = c(0, 45, 90, 135), no2.sf)
+v.m <- fit.variogram(v1, vgm(psill=20, model = "Exp", range = 20000, nugget = 1))
+plot(v1.ani, v.m)
+```
+
+##
+
+```{r}
+plot(v1.ani)
+```
+
+## Addressing anisotropy parameters
+
+```{r}
+v1.ani <- variogram(NO2~1, alpha = c(0, 45, 90, 135), no2.sf)
+fit.ani <- vgm(psill=20, model = "Exp", range = 25000, nugget = 3, anis = c(30, 10, 0, 0.5, 0.3))
+plot(v1.ani, fit.ani)
+```
+
+Your turn: Fit a suitable model (I will proceed with `v.m` )
+
+## Krigging
+
+1. Simple kriging
+
+2. Ordinary kriging
+
+3. Universal kriging
+
+4. Regression kriging
+
+5. Others: Staratified Kriging, Indicator Kriging, Block kriging
+
+## Ordinary Kriging
+
+```{r}
+v1 <- variogram(NO2~1, no2.sf)
+v.m <- fit.variogram(v1, vgm(psill=20, model = "Exp", range = 20000, nugget = 1))
+krigOK <- krige(NO2~1, no2.sf, grid, v.m)
+krigOK
+```
+
+## Visualise kriging predictions
+
+```{r}
+ggplot() + geom_stars(data = krigOK, aes(fill = var1.pred, x = x, y = y)) + 
+    xlab(NULL) + ylab(NULL) +
+    geom_sf(data = st_cast(map, "MULTILINESTRING")) + 
+    geom_sf(data = no2.sf) +
+    coord_sf(lims_method = "geometry_bbox") + scale_fill_viridis()
+```
+
+## Validation
+
+```{r}
+krig.ok.cv <- krige.cv(NO2~1, no2.sf, v.m)
+krig.ok.cv 
+```
+
+### RMSE
+
+```{r}
+round(sqrt(mean(krig.ok.cv$residual^2)), 2)
+```
+
+## Regression Kriging
+
+There is a trend in $\mu(s)$. This trend is estimated using covariates other than coordinates.
+
+```{r}
+plot( no2.sf$station_altitude, no2.sf$NO2,)
+```
+
+## Sample Variogram
+
+```{r}
+v.rk <- variogram(NO2~station_altitude, no2.sf)
+plot(v.rk)
+```
+
+## Fit Variogram
+
+```{r}
+v.m.rk <- fit.variogram(v.rk, vgm(psill=15, model = "Exp", range = 20000, nugget = 1))
+plot(v1, v.m)
+```
+
+## Assess isotropy assumption
+
+```{r}
+v1.ani.rk <- variogram(NO2~station_altitude, alpha = c(0, 45, 90, 135), no2.sf)
+v.m.rk <- fit.variogram(v1.ani.rk, vgm(psill=15, model = "Exp", range = 20000, nugget = 1))
+plot(v1.ani.rk, v.m.rk)
+```
+
+## Regression Kriging
+
+Your turn: Complete regression kriging
+
+## Using covariate
+
+```r
+vr <- variogram(NO2~sqrt(pop_dens), no2.sf)
+vr.m <- fit.variogram(vr, vgm(1, "Exp", 50000, 1))
+```
+
+## Your turn
+
+<!--https://www.paulamoraga.com/book-spatial/kriging.html-->
+
+```{r}
+library(sp)
+library(gstat)
+library(sf)
+library(mapview)
+
+data(meuse)
+data(meuse.grid)
+
+meuse <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+mapview(meuse, zcol = "zinc",  map.types = "CartoDB.Voyager")
+
+meuse.grid <- st_as_sf(meuse.grid, coords = c("x", "y"),
+                       crs = 28992)
+mapview(meuse.grid,  map.types = "CartoDB.Voyager")
+```
+
+
+## Perform EDA
+
+```{r}
+meuse
+```
+
+
+## Variogram Modelling with Pyhon
+
+[Click here to view the tutorial](https://scikit-gstat.readthedocs.io/en/latest/auto_examples/tutorial_01_getting_started.html)
+
+## Variogram Interpretations
+
+[Resources 1](https://csegrecorder.com/articles/view/the-variogram-basics-a-visual-intro-to-useful-geostatistical-concepts)
+
+[Resources 2](https://www.semanticscholar.org/paper/Methodology-for-Variogram-Interpretation-and-for-Gringarten-Deutsch/c12c97b6da9a7c1ee163c86cb5e669eed3dc3976)
+
+## Accuracy Measures and Cross-validation Strategies for Data with Temporal and/ or Spatial Structures
+
+# Loss function
+
+- Function that calculates loss for a single data point
+
+$e_i = y - \hat{y}$
+
+$e_i^2 = (y - \hat{y})^2$
+
+# Cost function
+
+- Calculates loss for the entire data sets 
+
+$$ME = \frac{1}{n}\sum_{i=1}^n e_i$$
+
+# Numeric outcome: Evaluations
+
+## Prediction accuracy measures (cost functions)
+
+Mean Error
+
+$$ME = \frac{1}{n}\sum_{i=1}^n e_i$$
+
+
+- Error can be both negative and positive. So they can cancel each other during the summation.
+
+## Mean Absolute Error (L1 loss)
+
+$$MAE = \frac{1}{n}\sum_{i=1}^n |e_i|$$
+
+##  Mean Squared Error (L2 loss)
+
+$$MSE = \frac{1}{n}\sum_{i=1}^n e^2_i$$
+
+
+## Mean Percentage Error
+
+$$MPE = \frac{1}{n}\sum_{i=1}^n \frac{e_i}{y_i}$$
+
+
+## Mean Absolute Percentage Error
+
+$$MAPE = \frac{1}{n}\sum_{i=1}^n |\frac{e_i}{y_i}|$$
+
+
+
+
+## Root Mean Squared Error
+
+$$RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^n e^2_i}$$
+
+## Mean Absolute Scaled Error
+
+In-class discussion
+
+[https://robjhyndman.com/papers/mase.pdf](https://robjhyndman.com/papers/mase.pdf){preview-link="true"}
+
+
+## Visualizaion of error distribution
+
+Graphical representations reveal more than metrics alone.
+
+## Accuracy Measures on Training Set vs Test Set
+
+Accuracy measure on training set: Tells about the model fit
+
+
+Accuracy measure on test set: Model ability to predict new data
+
+
+
+## Evaluate Classifier Against Benchmarks
+
+Naive approach: approach relies soley on $Y$
+
+Outcome: Numeric
+
+Naive  Benchmark:  Average ($\bar{Y}$)
+
+## Time series cross-validation
+
+
+![](crossvalidation.png)
+
+Image credit: Professor Rob Hyndman
+
+## LOOCV
+
+![](loocv.png)
+
+Blue - Training set
+
+Orange - Test set
+
+Not good for time series data. Why?
+
+
+## Evaluation on a rolling forecasting origin
+
+- There are a series of test sets, each consisting of a single observation.
+
+- The corresponding training set consists only of observations that occurred prior to the observation that forms the test set.
+
+##
+
+
+![](cv1.svg)
+
+Training set - blue, Test set - red
+
+The forecast accuracy is computed by averaging over the test sets. 
+
+Source: Hyndman, R. J., & Athanasopoulos, G. (2018). Forecasting: principles and practice. OTexts.
+
+## Multi-step ahead forecast
+
+
+![](cv4.svg)
+
+Training set - blue, Test set - red
+
+
+
+Source: Hyndman, R. J., & Athanasopoulos, G. (2018). Forecasting: principles and practice. OTexts.
+
+## Cross-validation in Space
+
+![](space_cv.png)
+
+Source: Roberts, D. R., Bahn, V., Ciuti, S., Boyce, M. S., Elith, J., Guillera‐Arroita, G., ... & Dormann, C. F. (2017). Cross‐validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. Ecography, 40(8), 913-929
+
+## Case 1: Unbalanced data
+
+![](space_cv.png)
+
+## Case 2
+
+Source: Ploton, P., Mortier, F., Réjou-Méchain, M., Barbier, N., Picard, N., Rossi, V., ... & Pélissier, R. (2020). Spatial validation reveals poor predictive performance of large-scale ecological mapping models. Nature communications, 11(1), 1-11.
+
+![](scv.png)
+
+
+
+##
+
+![](scv.png)
+
