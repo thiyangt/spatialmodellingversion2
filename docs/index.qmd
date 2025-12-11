@@ -251,6 +251,16 @@ Example: Each city connected to its 3 nearest cities.
 
 To incorporate these relationships into models, we create spatial weights, which quantify the influence of each neighbour.
 
+## Geostatistical Theory
+
+- Mean
+
+- Variance
+
+- Autocovariance
+
+- Autocorrelation
+
 ## Weakly Stationary
 
 In-class
