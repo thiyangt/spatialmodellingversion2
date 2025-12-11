@@ -218,11 +218,46 @@ ggplot(map) + geom_sf() +
 ```
 
 
+
+## Spatial Neighbours
+
+Spatial Neighbours in GIS and spatial analysis refer to locations or features that are close to or related to a specific point/area, defined by proximity, contiguity (touching), or other spatial criteria.
+
+## .Types of Spatial Neighbours
+
+1. Contiguity-based neighbours
+
+Two regions are neighbours if they share a common boundary (or vertex).
+
+Rook criterion: Share a common edge.
+
+Queen criterion: Share an edge or a vertex.
+
+Example: Two adjacent districts in a country.
+
+2. Distance-based neighbours
+
+Two locations are neighbours if the distance between them is below a threshold.
+
+Example: Weather stations within 10 km of each other.
+
+3. k-nearest neighbours
+
+Each location is connected to its k closest locations, regardless of actual distance threshold.
+
+Example: Each city connected to its 3 nearest cities.
+
+## Modelling Spatial Neighbours (cont.)
+
+To incorporate these relationships into models, we create spatial weights, which quantify the influence of each neighbour.
+
 ## Weakly Stationary
 
+In-class
 
 ## Strictly Stationary
 
+In-class
 
 ##
 

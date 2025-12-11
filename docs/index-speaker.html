@@ -809,11 +809,41 @@ First 10 features:
 </div>
 </div>
 </section>
+<section id="spatial-neighbours" class="slide level2">
+<h2>Spatial Neighbours</h2>
+<p>Spatial Neighbours in GIS and spatial analysis refer to locations or features that are close to or related to a specific point/area, defined by proximity, contiguity (touching), or other spatial criteria.</p>
+</section>
+<section id="types-of-spatial-neighbours" class="slide level2">
+<h2>.Types of Spatial Neighbours</h2>
+<ol type="1">
+<li class="fragment">Contiguity-based neighbours</li>
+</ol>
+<p>Two regions are neighbours if they share a common boundary (or vertex).</p>
+<p>Rook criterion: Share a common edge.</p>
+<p>Queen criterion: Share an edge or a vertex.</p>
+<p>Example: Two adjacent districts in a country.</p>
+<ol start="2" type="1">
+<li class="fragment">Distance-based neighbours</li>
+</ol>
+<p>Two locations are neighbours if the distance between them is below a threshold.</p>
+<p>Example: Weather stations within 10 km of each other.</p>
+<ol start="3" type="1">
+<li class="fragment">k-nearest neighbours</li>
+</ol>
+<p>Each location is connected to its k closest locations, regardless of actual distance threshold.</p>
+<p>Example: Each city connected to its 3 nearest cities.</p>
+</section>
+<section id="modelling-spatial-neighbours-cont." class="slide level2">
+<h2>Modelling Spatial Neighbours (cont.)</h2>
+<p>To incorporate these relationships into models, we create spatial weights, which quantify the influence of each neighbour.</p>
+</section>
 <section id="weakly-stationary" class="slide level2">
 <h2>Weakly Stationary</h2>
+<p>In-class</p>
 </section>
 <section id="strictly-stationary" class="slide level2">
 <h2>Strictly Stationary</h2>
+<p>In-class</p>
 </section>
 <section id="section" class="slide level2">
 <h2></h2>
