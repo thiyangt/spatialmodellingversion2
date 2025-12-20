@@ -223,7 +223,7 @@ ggplot(map) + geom_sf() +
 
 Spatial Neighbours in GIS and spatial analysis refer to locations or features that are close to or related to a specific point/area, defined by proximity, contiguity (touching), or other spatial criteria.
 
-## .Types of Spatial Neighbours
+## Types of Spatial Neighbours
 
 1. Contiguity-based neighbours
 
@@ -260,6 +260,34 @@ To incorporate these relationships into models, we create spatial weights, which
 - Autocovariance
 
 - Autocorrelation
+
+## Spatial Continuity
+
+- Spatial continuity is the tendency for spatially nearby observations to be similar, creating smooth and structured variation across space rather than random noise.
+
+- Correlation between values over distance.
+
+- Spatial continuity explains why independence is often violated in spatial datasets.
+
+## Why it matters
+
+**Spatial continuity is the foundation for:**
+
+Spatial autocorrelation measures (e.g., Moran’s I)
+
+Spatial smoothing and interpolation
+
+Spatial regression models
+
+Geostatistics (variograms, kriging)
+
+**Ignoring spatial continuity can lead to:**
+
+Biased estimates
+
+Overconfident inference
+
+Misleading conclusions
 
 ## Weakly Stationary
 
