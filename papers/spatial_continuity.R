@@ -1,0 +1,1 @@
+https://geostatsguy.github.io/GeostatsPyDemos_Book/GeostatsPy_variogram_calculation.html

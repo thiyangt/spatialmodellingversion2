@@ -261,34 +261,6 @@ To incorporate these relationships into models, we create spatial weights, which
 
 - Autocorrelation
 
-## Spatial Continuity
-
-- Spatial continuity is the tendency for spatially nearby observations to be similar, creating smooth and structured variation across space rather than random noise.
-
-- Correlation between values over distance.
-
-- Spatial continuity explains why independence is often violated in spatial datasets.
-
-## Why it matters
-
-**Spatial continuity is the foundation for:**
-
-Spatial autocorrelation measures (e.g., Moran’s I)
-
-Spatial smoothing and interpolation
-
-Spatial regression models
-
-Geostatistics (variograms, kriging)
-
-**Ignoring spatial continuity can lead to:**
-
-Biased estimates
-
-Overconfident inference
-
-Misleading conclusions
-
 ## Weakly Stationary
 
 In-class
@@ -365,6 +337,47 @@ ggplot(data.frame(x)) +
    This assumption simplifies analysis and modeling processes.
 
 
+## Spatial Continuity
+
+- Spatial continuity is the tendency for spatially nearby observations to be similar, creating smooth and structured variation across space rather than random noise.
+
+- Correlation between values over distance.
+
+- Spatial continuity explains why independence is often violated in spatial datasets.
+
+## Why it matters
+
+**Spatial continuity is the foundation for:**
+
+Spatial autocorrelation measures (e.g., Moran’s I)
+
+Spatial smoothing and interpolation
+
+Spatial regression models
+
+Geostatistics (variograms, kriging)
+
+**Ignoring spatial continuity can lead to:**
+
+Biased estimates
+
+Overconfident inference
+
+Misleading conclusions
+
+## Spatial h-scatterplot
+
+A spatial h-scatterplot is a scatterplot of paired observations separated by a given distance (lag) $h$.
+
+## Why Spatial h-scatterplot matters
+
+The h-scatterplot provides a visual, pairwise view of spatial dependence at distance $h$.
+
+It is the building block of the variogram.
+
+## Variogram
+
+The variogram summarizes spatial continuity as a function of distance.
 
 ## Spatial Interpolation
 
